@@ -1,3 +1,5 @@
+import GpdbClient, { GetSupabaseProjectDashboardAccountRequest, GetSupabaseProjectRequest, ListSupabaseProjectsRequest } from '@alicloud/gpdb20160503';
+import * as OpenApi from '@alicloud/openapi-client';
 import {
   getMultipartBoundary,
   parseMultipartStream,
@@ -35,6 +37,9 @@ import {
   type ResetBranchOptions,
   type StorageConfig,
   type SupabasePlatform,
+  type ListAliyunSupabaseProjectsResult,
+  type GetAliyunSupabaseProjectResult,
+  type GetAliyunSupabaseProjectDashboardAccountResult,
 } from './index.js';
 
 const { version } = packageJson;
@@ -44,6 +49,8 @@ export type SupabaseApiPlatformOptions = {
    * The access token for the Supabase Management API.
    */
   accessToken: string;
+
+  aliyunAccessToken?: string;
 
   /**
    * The API URL for the Supabase Management API.
@@ -57,7 +64,7 @@ export type SupabaseApiPlatformOptions = {
 export function createSupabaseApiPlatform(
   options: SupabaseApiPlatformOptions
 ): SupabasePlatform {
-  const { accessToken, apiUrl } = options;
+  const { accessToken, aliyunAccessToken, apiUrl } = options;
 
   const managementApiUrl = apiUrl ?? 'https://api.supabase.com';
 
@@ -65,6 +72,23 @@ export function createSupabaseApiPlatform(
     managementApiUrl,
     accessToken
   );
+
+  const createAliyunGpdbClient = (regionId: string = 'cn-hangzhou') => {
+    if (!aliyunAccessToken) {
+      throw new Error('ALIYUN_ACCESS_TOKEN environment variable is not set or provided.');
+    }
+    const [accessKeyId, accessKeySecret] = aliyunAccessToken.split('|');
+    if (!accessKeyId || !accessKeySecret) {
+      throw new Error('Invalid Aliyun Access Token format in ALIYUN_ACCESS_TOKEN. Expected "AccessKeyId|AccessKeySecret".');
+    }
+    const config = new OpenApi.Config({
+      accessKeyId,
+      accessKeySecret,
+      regionId,
+    });
+    config.endpoint = `gpdb.aliyuncs.com`;
+    return new GpdbClient.default(config);
+  };
 
   const platform: SupabasePlatform = {
     async init(info: InitData) {
@@ -688,6 +712,91 @@ export function createSupabaseApiPlatform(
 
       return response.data;
     },
+    
+    async listAliyunSupabaseProjects(
+      options: any
+    ): Promise<ListAliyunSupabaseProjectsResult> {
+      // 1. 创建阿里云客户端
+      const client = createAliyunGpdbClient(options.region_id);
+
+      // 2. 构造请求参数对象
+      const request = new ListSupabaseProjectsRequest({
+        // SDK 会自动处理 undefined 的情况，所以可以直接赋值
+        regionId: options.region_id,
+        nextToken: options.next_token,
+        maxResults: options.max_results,
+      });
+
+      try {
+        // 3. 调用 SDK 方法
+        const response = await client.listSupabaseProjects(request);
+        
+        // 4. 返回 API 响应的主体部分
+        // SDK 的返回类型可能与我们的自定义类型略有差异，但结构应该兼容
+        // 使用 as 进行类型断言
+        return response.body as unknown as ListAliyunSupabaseProjectsResult;
+      } catch (error: any) {
+        // 增加更详细的错误日志
+        console.error('Failed to call Aliyun ListSupabaseProjects API:', error.message);
+        console.error('Aliyun Error Data:', error.data);
+        throw new Error(`Failed to list Aliyun Supabase projects: ${error.data?.Message || error.message}`);
+      }
+    },
+
+    async getAliyunSupabaseProject(
+      options: { 
+        project_id: string;
+        region_id?: string;
+      }
+    ): Promise<GetAliyunSupabaseProjectResult> {
+      // 1. 创建阿里云客户端
+      const client = createAliyunGpdbClient(options.region_id || 'cn-hangzhou');
+
+      // 2. 构造请求参数对象
+      const request = new GetSupabaseProjectRequest({
+        projectId: options.project_id,
+        regionId: options.region_id,
+      });
+
+      try {
+        // 3. 调用 SDK 方法
+        const response = await client.getSupabaseProject(request);
+        
+        // 4. 返回 API 响应的主体部分
+        return response.body as unknown as GetAliyunSupabaseProjectResult;
+      } catch (error: any) {
+        console.error('Failed to call Aliyun GetSupabaseProject API:', error.message);
+        console.error('Aliyun Error Data:', error.data);
+        throw new Error(`Failed to get Aliyun Supabase project details: ${error.data?.Message || error.message}`);
+      }
+    },
+
+    async getAliyunSupabaseProjectDashboardAccount(options: {
+      project_id: string;
+      region_id?: string;
+    }): Promise<GetAliyunSupabaseProjectDashboardAccountResult> {
+      // 1. 创建阿里云客户端
+      const client = createAliyunGpdbClient(options.region_id);
+
+      // 2. 构造请求参数对象
+      const request = new GetSupabaseProjectDashboardAccountRequest({
+        projectId: options.project_id,
+        regionId: options.region_id,
+      });
+
+      try {
+        // 3. 调用 SDK 方法
+        const response = await client.getSupabaseProjectDashboardAccount(request);
+
+        // 4. 返回 API 响应的主体部分
+        return response.body as unknown as GetAliyunSupabaseProjectDashboardAccountResult;
+      } catch (error: any) {
+        console.error('Failed to call Aliyun GetSupabaseProjectDashboardAccount API:', error.message);
+        console.error('Aliyun Error Data:', error.data);
+        throw new Error(`Failed to get Aliyun Supabase project dashboard account: ${error.data?.Message || error.message}`);
+      }
+    }
+
   };
 
   return platform;

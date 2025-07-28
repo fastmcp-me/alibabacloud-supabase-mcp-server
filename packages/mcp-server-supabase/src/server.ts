@@ -11,6 +11,7 @@ import { getDevelopmentTools } from './tools/development-tools.js';
 import { getDocsTools } from './tools/docs-tools.js';
 import { getEdgeFunctionTools } from './tools/edge-function-tools.js';
 import { getStorageTools } from './tools/storage-tools.js';
+import { getAliyunTools } from './tools/aliyun-tools.js';
 
 const { version } = packageJson;
 
@@ -66,6 +67,7 @@ const featureGroupSchema = z.enum([
   'functions',
   'branching',
   'storage',
+  'aliyun',
 ]);
 
 export type FeatureGroup = z.infer<typeof featureGroupSchema>;
@@ -111,12 +113,22 @@ export function createSupabaseMcpServer(options: SupabaseMcpServerOptions) {
       const tools: Record<string, Tool> = {};
 
       // Add feature-based tools
-      if (!projectId && enabledFeatures.has('account')) {
+      if (enabledFeatures.has('account')) {
         Object.assign(tools, getAccountTools({ platform }));
       }
-
+      
+      if (enabledFeatures.has('aliyun')) {
+        Object.assign(tools, await getAliyunTools({ platform }));
+      }
+      
       if (enabledFeatures.has('branching')) {
-        Object.assign(tools, getBranchingTools({ platform, projectId }));
+        Object.assign(
+          tools,
+          getBranchingTools({
+            platform,
+            projectId,
+          })
+        );
       }
 
       if (enabledFeatures.has('database')) {

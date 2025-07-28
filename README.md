@@ -243,6 +243,13 @@ Disabled by default to reduce tool count. Use `storage` to target this group of 
 - `get_storage_config`: Gets the storage config for a Supabase project.
 - `update_storage_config`: Updates the storage config for a Supabase project (requires a paid plan).
 
+#### Aliyun
+
+Disabled by default. Use `aliyun` to target this group of tools with the [`--features`](#feature-groups) option.
+
+- `list_aliyun_supabase_projects`: Lists Supabase projects on Aliyun platform.
+- `get_supabase_project_api_keys`: Gets the Supabase project API keys including anon key and service role key.
+
 ## Security risks
 
 Connecting any data source to an LLM carries inherent risks, especially when it stores sensitive data. Supabase is no exception, so it's important to discuss what risks you should be aware of and extra precautions you can take to lower them.

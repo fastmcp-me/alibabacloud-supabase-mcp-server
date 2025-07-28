@@ -155,6 +155,57 @@ export type GenerateTypescriptTypesResult = z.infer<
 export type StorageConfig = z.infer<typeof storageConfigSchema>;
 export type StorageBucket = z.infer<typeof storageBucketSchema>;
 
+export type ListAliyunSupabaseProjectsOptions = {
+  region_id?: string;
+  next_token?: string;
+  max_results?: number;
+};
+
+export type AliyunSupabaseProject = {
+  ProjectName: string;
+  ProjectSpec: string;
+  Status: string;
+  PublicConnectUrl: string;
+  PrivateConnectUrl: string;
+  RegionId: string;
+  ZoneId: string;
+  VpcId: string;
+  VSwitchId: string;
+  SecurityIPList: string;
+  DiskPerformanceLevel: string;
+  Engine: string;
+  EngineVersion: string;
+  StorageSize: number; // long 类型在 JS/TS 中用 number
+  CreateTime: string;
+  DashboardUserName: string;
+  ProjectId: string;
+  DashboardPassword: string;
+  PayType: string;
+};
+
+export type ListAliyunSupabaseProjectsResult = {
+  RequestId: string;
+  PageNumber: number;
+  PageRecordCount: number;
+  TotalRecordCount: number;
+  Items: AliyunSupabaseProject[];
+  NextToken?: string;
+  MaxResults: number;
+};
+
+export type GetAliyunSupabaseProjectResult = {
+  RequestId: string;
+  Project: AliyunSupabaseProject;
+};
+
+export type GetAliyunSupabaseProjectDashboardAccountResult = {
+  RequestId: string;
+  ProjectName: string;
+  ProjectId: string;
+  DashboardPassword: string;
+  DashboardUsername: string;
+};
+
 export type SupabasePlatform = {
   init?(info: InitData): Promise<void>;
 
@@ -174,6 +225,27 @@ export type SupabasePlatform = {
   createProject(options: CreateProjectOptions): Promise<Project>;
   pauseProject(projectId: string): Promise<void>;
   restoreProject(projectId: string): Promise<void>;
+  
+  // Aliyun specific
+  listAliyunSupabaseProjects(options: {
+    region_id?: string;
+    next_token?: string;
+    max_results?: number;
+  }): Promise<ListAliyunSupabaseProjectsResult>; 
+
+  getAliyunSupabaseProject(
+    options: {
+      project_id: string;
+      region_id?: string;
+    }
+  ): Promise<GetAliyunSupabaseProjectResult>;
+
+  getAliyunSupabaseProjectDashboardAccount(
+    options: {
+      project_id: string;
+      region_id?: string;
+    }
+  ): Promise<GetAliyunSupabaseProjectDashboardAccountResult>;
 
   // Edge functions
   listEdgeFunctions(projectId: string): Promise<EdgeFunction[]>;

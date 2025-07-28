@@ -57,12 +57,21 @@ async function main() {
     process.exit(1);
   }
 
+  const aliyunAccessToken = process.env.ALIYUN_ACCESS_TOKEN;
+
   const features = cliFeatures ? parseList(cliFeatures) : undefined;
 
+  // 增加日志来确认代码执行到了这里
+  console.error('DEBUG: Initializing platform...');
+
   const platform = createSupabaseApiPlatform({
-    accessToken,
+    accessToken: accessToken,
+    aliyunAccessToken: aliyunAccessToken,
     apiUrl,
   });
+  
+  // 增加日志
+  console.error('DEBUG: Platform initialized. Creating MCP server...');
 
   const server = createSupabaseMcpServer({
     platform,
@@ -70,10 +79,15 @@ async function main() {
     readOnly,
     features,
   });
+  
+  // 增加日志
+  console.error('DEBUG: MCP server created. Connecting transport...');
 
   const transport = new StdioServerTransport();
-
   await server.connect(transport);
+  
+  // 增加日志
+  console.error('DEBUG: Transport connected successfully.');
 }
 
 main().catch(console.error);
