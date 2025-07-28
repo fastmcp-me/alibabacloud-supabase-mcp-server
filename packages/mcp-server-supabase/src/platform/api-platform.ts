@@ -1,4 +1,4 @@
-import GpdbClient, { GetSupabaseProjectApiKeysRequest, GetSupabaseProjectDashboardAccountRequest, GetSupabaseProjectRequest, ListSupabaseProjectsRequest } from '@alicloud/gpdb20160503';
+import GpdbClient, { CreateSupabaseProjectRequest, GetSupabaseProjectApiKeysRequest, GetSupabaseProjectDashboardAccountRequest, GetSupabaseProjectRequest, ListSupabaseProjectsRequest, ModifySupabaseProjectSecurityIpsRequest, ResetSupabaseProjectPasswordRequest } from '@alicloud/gpdb20160503';
 import * as OpenApi from '@alicloud/openapi-client';
 import {
   getMultipartBoundary,
@@ -41,6 +41,9 @@ import {
   type GetAliyunSupabaseProjectResult,
   type GetAliyunSupabaseProjectDashboardAccountResult,
   type GetAliyunSupabaseProjectApiKeysResult,
+  type ModifyAliyunSupabaseProjectSecurityIpsResult,
+  type ResetAliyunSupabaseProjectPasswordResult,
+  type CreateAliyunSupabaseProjectResult,
 } from './index.js';
 
 const { version } = packageJson;
@@ -821,6 +824,131 @@ export function createSupabaseApiPlatform(
         console.error('Failed to call Aliyun GetSupabaseProjectApiKeys API:', error.message);
         console.error('Aliyun Error Data:', error.data);
         throw new Error(`Failed to get Aliyun Supabase project API keys: ${error.data?.Message || error.message}`);
+      }
+    },
+
+    async modifyAliyunSupabaseProjectSecurityIps(
+      options: {
+        project_id: string;
+        region_id?: string;
+        security_ip_list: string[];
+      }
+    ): Promise<ModifyAliyunSupabaseProjectSecurityIpsResult> {
+      // 1. 验证必填参数
+      if (!options.project_id) {
+        throw new Error('Missing required parameter: project_id');
+      }
+      
+      if (!options.security_ip_list) {
+        throw new Error('Missing required parameter: security_ip_list');
+      }
+
+      // 2. 创建阿里云客户端
+      const client = createAliyunGpdbClient(options.region_id || 'cn-hangzhou');
+
+      // 3. 构造请求参数对象
+      // 注意：这里需要使用正确的阿里云SDK请求类
+      const request = new ModifySupabaseProjectSecurityIpsRequest({
+        projectId: options.project_id,
+        regionId: options.region_id,
+        securityIPList: Array.isArray(options.security_ip_list)
+          ? options.security_ip_list.join(',')
+          : options.security_ip_list,
+      });
+
+      try {
+        // 4. 调用 SDK 方法
+        const response = await client.modifySupabaseProjectSecurityIps(request);
+        
+        // 5. 返回 API 响应的主体部分
+        return response.body as unknown as ModifyAliyunSupabaseProjectSecurityIpsResult;
+      } catch (error: any) {
+        console.error('Failed to call Aliyun ModifySupabaseProjectSecurityIps API:', error.message);
+        console.error('Aliyun Error Data:', error.data);
+        throw new Error(`Failed to modify Aliyun Supabase project security IPs: ${error.data?.Message || error.message}`);
+      }
+    },
+
+    async resetAliyunSupabaseProjectPassword(
+      options: {
+        project_id: string;
+        region_id?: string;
+        account_password: string;
+      }
+    ): Promise<ResetAliyunSupabaseProjectPasswordResult> {
+      // 1. 验证必填参数
+      if (!options.project_id) {
+        throw new Error('Missing required parameter: project_id');
+      }
+      
+      if (!options.account_password) {
+        throw new Error('Missing required parameter: account_password');
+      }
+
+      // 2. 创建阿里云客户端
+      const client = createAliyunGpdbClient(options.region_id || 'cn-hangzhou');
+
+      // 3. 构造请求参数对象
+      const request = new ResetSupabaseProjectPasswordRequest({
+        projectId: options.project_id,
+        regionId: options.region_id,
+        accountPassword: options.account_password,
+      });
+
+      try {
+        // 4. 调用 SDK 方法
+        const response = await client.resetSupabaseProjectPassword(request);
+        
+        // 5. 返回 API 响应的主体部分
+        return response.body as unknown as ResetAliyunSupabaseProjectPasswordResult;
+      } catch (error: any) {
+        console.error('Failed to call Aliyun ResetSupabaseProjectPassword API:', error.message);
+        console.error('Aliyun Error Data:', error.data);
+        throw new Error(`Failed to reset Aliyun Supabase project password: ${error.data?.Message || error.message}`);
+      }
+    },
+
+    async createAliyunSupabaseProject(options: {
+      project_name: string;
+      zone_id: string;
+      account_password: string;
+      security_ip_list: string;
+      vpc_id: string;
+      v_switch_id: string;
+      project_spec: string;
+      region_id?: string;
+      storage_size?: number;
+      disk_performance_level?: string;
+      client_token?: string;
+    }): Promise<CreateAliyunSupabaseProjectResult> {
+      // 1. 创建阿里云客户端
+      const client = createAliyunGpdbClient(options.region_id || 'cn-hangzhou');
+
+      // 2. 构造请求参数对象
+      const request = new CreateSupabaseProjectRequest({
+        projectName: options.project_name,
+        zoneId: options.zone_id,
+        accountPassword: options.account_password,
+        securityIPList: options.security_ip_list,
+        vpcId: options.vpc_id,
+        vSwitchId: options.v_switch_id,
+        projectSpec: options.project_spec,
+        regionId: options.region_id,
+        storageSize: options.storage_size,
+        diskPerformanceLevel: options.disk_performance_level,
+        clientToken: options.client_token,
+      });
+
+      try {
+        // 3. 调用 SDK 方法
+        const response = await client.createSupabaseProject(request);
+        
+        // 4. 返回 API 响应的主体部分
+        return response.body as unknown as CreateAliyunSupabaseProjectResult;
+      } catch (error: any) {
+        console.error('Failed to call Aliyun CreateSupabaseProject API:', error.message);
+        console.error('Aliyun Error Data:', error.data);
+        throw new Error(`Failed to create Aliyun Supabase project: ${error.data?.Message || error.message}`);
       }
     }
 

@@ -214,6 +214,19 @@ export type GetAliyunSupabaseProjectApiKeysResult = {
   }>;
 };
 
+export type ModifyAliyunSupabaseProjectSecurityIpsResult = {
+  RequestId: string;
+};
+
+export type ResetAliyunSupabaseProjectPasswordResult = {
+  RequestId: string;
+};
+
+export type CreateAliyunSupabaseProjectResult = {
+  RequestId: string;
+  ProjectId: string;
+};
+
 export type SupabasePlatform = {
   init?(info: InitData): Promise<void>;
 
@@ -259,6 +272,32 @@ export type SupabasePlatform = {
     project_id: string;
     region_id?: string;
   }): Promise<GetAliyunSupabaseProjectApiKeysResult>
+
+  modifyAliyunSupabaseProjectSecurityIps(options: {
+    project_id: string;
+    region_id?: string;
+    security_ip_list: string[];
+  }): Promise<ModifyAliyunSupabaseProjectSecurityIpsResult>
+
+  resetAliyunSupabaseProjectPassword(options: {
+    project_id: string;
+    region_id?: string;
+    account_password: string;
+  }): Promise<ResetAliyunSupabaseProjectPasswordResult>
+
+  createAliyunSupabaseProject(options: {
+    project_name: string;
+    zone_id: string;
+    account_password: string;
+    security_ip_list: string;
+    vpc_id: string;
+    v_switch_id: string;
+    project_spec: string;
+    region_id?: string;
+    storage_size?: number;
+    disk_performance_level?: string;
+    client_token?: string;
+  }): Promise<CreateAliyunSupabaseProjectResult>;
 
   // Edge functions
   listEdgeFunctions(projectId: string): Promise<EdgeFunction[]>;
