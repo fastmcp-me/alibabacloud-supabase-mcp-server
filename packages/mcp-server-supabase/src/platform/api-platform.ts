@@ -1,4 +1,4 @@
-import GpdbClient, { CreateSupabaseProjectRequest, GetSupabaseProjectApiKeysRequest, GetSupabaseProjectDashboardAccountRequest, GetSupabaseProjectRequest, ListSupabaseProjectsRequest, ModifySupabaseProjectSecurityIpsRequest, ResetSupabaseProjectPasswordRequest } from '@alicloud/gpdb20160503';
+import GpdbClient, { CreateSupabaseProjectRequest, DeleteSupabaseProjectRequest, GetSupabaseProjectApiKeysRequest, GetSupabaseProjectDashboardAccountRequest, GetSupabaseProjectRequest, ListSupabaseProjectsRequest, ModifySupabaseProjectSecurityIpsRequest, ResetSupabaseProjectPasswordRequest } from '@alicloud/gpdb20160503';
 import * as OpenApi from '@alicloud/openapi-client';
 import {
   getMultipartBoundary,
@@ -44,6 +44,7 @@ import {
   type ModifyAliyunSupabaseProjectSecurityIpsResult,
   type ResetAliyunSupabaseProjectPasswordResult,
   type CreateAliyunSupabaseProjectResult,
+  type DeleteAliyunSupabaseProjectResult,
 } from './index.js';
 
 const { version } = packageJson;
@@ -949,6 +950,37 @@ export function createSupabaseApiPlatform(
         console.error('Failed to call Aliyun CreateSupabaseProject API:', error.message);
         console.error('Aliyun Error Data:', error.data);
         throw new Error(`Failed to create Aliyun Supabase project: ${error.data?.Message || error.message}`);
+      }
+    },
+
+    async deleteAliyunSupabaseProject(options: {
+      project_id: string;
+      region_id?: string;
+    }): Promise<DeleteAliyunSupabaseProjectResult> {
+      // 1. 验证必填参数
+      if (!options.project_id) {
+        throw new Error('Missing required parameter: project_id');
+      }
+
+      // 2. 创建阿里云客户端
+      const client = createAliyunGpdbClient(options.region_id || 'cn-hangzhou');
+
+      // 3. 构造请求参数对象
+      const request = new DeleteSupabaseProjectRequest({
+        projectId: options.project_id,
+        regionId: options.region_id,
+      });
+
+      try {
+        // 4. 调用 SDK 方法
+        const response = await client.deleteSupabaseProject(request);
+        
+        // 5. 返回 API 响应的主体部分
+        return response.body as unknown as DeleteAliyunSupabaseProjectResult;
+      } catch (error: any) {
+        console.error('Failed to call Aliyun DeleteSupabaseProject API:', error.message);
+        console.error('Aliyun Error Data:', error.data);
+        throw new Error(`Failed to delete Aliyun Supabase project: ${error.data?.Message || error.message}`);
       }
     }
 

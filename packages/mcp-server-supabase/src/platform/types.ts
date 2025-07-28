@@ -227,6 +227,10 @@ export type CreateAliyunSupabaseProjectResult = {
   ProjectId: string;
 };
 
+export type DeleteAliyunSupabaseProjectResult = {
+  RequestId: string;
+};
+
 export type SupabasePlatform = {
   init?(info: InitData): Promise<void>;
 
@@ -298,6 +302,11 @@ export type SupabasePlatform = {
     disk_performance_level?: string;
     client_token?: string;
   }): Promise<CreateAliyunSupabaseProjectResult>;
+
+  deleteAliyunSupabaseProject(options: {
+    project_id: string;
+    region_id?: string;
+  }): Promise<DeleteAliyunSupabaseProjectResult>;
 
   // Edge functions
   listEdgeFunctions(projectId: string): Promise<EdgeFunction[]>;

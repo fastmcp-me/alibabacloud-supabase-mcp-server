@@ -179,5 +179,26 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
       }
     }),
 
+    delete_supabase_project: tool({
+      description: 'Delete a Supabase project on Aliyun platform.',
+      parameters: z.object({
+        project_id: z.string().describe('Supabase project ID. You can log in to the console Supabase page to get the workspace ID.'),
+        region_id: z.string().optional().describe('The region ID where the instance is located.'),
+      }),
+      execute: async (options) => {
+        try {
+          const result = await platform.deleteAliyunSupabaseProject(options);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error occurred';
+          return {
+            content: [{ type: 'text', text: `Error: ${message}` }]
+          };
+        }
+      }
+    }),
+
   };
 }
