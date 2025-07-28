@@ -1,4 +1,4 @@
-import GpdbClient, { GetSupabaseProjectDashboardAccountRequest, GetSupabaseProjectRequest, ListSupabaseProjectsRequest } from '@alicloud/gpdb20160503';
+import GpdbClient, { GetSupabaseProjectApiKeysRequest, GetSupabaseProjectDashboardAccountRequest, GetSupabaseProjectRequest, ListSupabaseProjectsRequest } from '@alicloud/gpdb20160503';
 import * as OpenApi from '@alicloud/openapi-client';
 import {
   getMultipartBoundary,
@@ -40,6 +40,7 @@ import {
   type ListAliyunSupabaseProjectsResult,
   type GetAliyunSupabaseProjectResult,
   type GetAliyunSupabaseProjectDashboardAccountResult,
+  type GetAliyunSupabaseProjectApiKeysResult,
 } from './index.js';
 
 const { version } = packageJson;
@@ -794,6 +795,32 @@ export function createSupabaseApiPlatform(
         console.error('Failed to call Aliyun GetSupabaseProjectDashboardAccount API:', error.message);
         console.error('Aliyun Error Data:', error.data);
         throw new Error(`Failed to get Aliyun Supabase project dashboard account: ${error.data?.Message || error.message}`);
+      }
+    },
+
+    async getAliyunSupabaseProjectApiKeys(options: {
+      project_id: string;
+      region_id?: string;
+    }): Promise<GetAliyunSupabaseProjectApiKeysResult> {
+      // 1. 创建阿里云客户端
+      const client = createAliyunGpdbClient(options.region_id);
+
+      // 2. 构造请求参数对象
+      const request = new GetSupabaseProjectApiKeysRequest({
+        projectId: options.project_id,
+        regionId: options.region_id,
+      });
+
+      try {
+        // 3. 调用 SDK 方法
+        const response = await client.getSupabaseProjectApiKeys(request);
+
+        // 4. 返回 API 响应的主体部分
+        return response.body as unknown as GetAliyunSupabaseProjectApiKeysResult;
+      } catch (error: any) {
+        console.error('Failed to call Aliyun GetSupabaseProjectApiKeys API:', error.message);
+        console.error('Aliyun Error Data:', error.data);
+        throw new Error(`Failed to get Aliyun Supabase project API keys: ${error.data?.Message || error.message}`);
       }
     }
 

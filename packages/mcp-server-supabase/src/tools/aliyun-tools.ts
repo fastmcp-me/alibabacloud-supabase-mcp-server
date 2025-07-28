@@ -76,5 +76,29 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
       },
     }),
 
+    get_supabase_project_api_keys: tool({
+      description: 'Gets the Supabase project API keys including anon key and service role key.',
+      parameters: z.object({
+        project_id: z.string().describe('The Supabase instance ID.'),
+        region_id: z.string().optional().describe('The region ID where the instance is located.'),
+      }),
+      execute: async ({ project_id, region_id }) => {
+        try {
+          const result = await platform.getAliyunSupabaseProjectApiKeys({
+            project_id,
+            region_id,
+          });
+          return {
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error occurred';
+          return {
+            content: [{ type: 'text', text: `Error: ${message}` }]
+          };
+        }
+      }
+    })
+
   };
 }

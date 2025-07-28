@@ -206,6 +206,14 @@ export type GetAliyunSupabaseProjectDashboardAccountResult = {
   DashboardUsername: string;
 };
 
+export type GetAliyunSupabaseProjectApiKeysResult = {
+  RequestId: string;
+  ApiKeys: Array<{
+    ApiKey: string;
+    Name: string;
+  }>;
+};
+
 export type SupabasePlatform = {
   init?(info: InitData): Promise<void>;
 
@@ -246,6 +254,11 @@ export type SupabasePlatform = {
       region_id?: string;
     }
   ): Promise<GetAliyunSupabaseProjectDashboardAccountResult>;
+
+  getAliyunSupabaseProjectApiKeys(options: {
+    project_id: string;
+    region_id?: string;
+  }): Promise<GetAliyunSupabaseProjectApiKeysResult>
 
   // Edge functions
   listEdgeFunctions(projectId: string): Promise<EdgeFunction[]>;
