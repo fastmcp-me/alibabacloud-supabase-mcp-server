@@ -1,5 +1,5 @@
 {
-  "name": "@supabase/mcp-utils",
+  "name": "@aliyun-supabase/mcp-utils",
   "version": "0.2.1",
   "description": "MCP utilities",
   "license": "Apache-2.0",

@@ -1,5 +1,5 @@
 {
-  "name": "@supabase/mcp-server-supabase",
+  "name": "@aliyun-supabase/mcp-server-supabase",
   "version": "0.4.5",
   "description": "MCP server for interacting with Supabase",
   "license": "Apache-2.0",
