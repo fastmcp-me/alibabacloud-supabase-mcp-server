@@ -50,22 +50,24 @@ async function main() {
 
   const accessToken = cliAccessToken ?? process.env.SUPABASE_ACCESS_TOKEN;
 
-  if (!accessToken) {
+  const aliyunAccessToken = process.env.ALIYUN_ACCESS_TOKEN;
+
+  const features = cliFeatures ? parseList(cliFeatures) : undefined;
+
+  const hasAliyunFeature = features?.includes('aliyun');
+
+  if (!hasAliyunFeature && !accessToken) {
     console.error(
       'Please provide a personal access token (PAT) with the --access-token flag or set the SUPABASE_ACCESS_TOKEN environment variable'
     );
     process.exit(1);
   }
 
-  const aliyunAccessToken = process.env.ALIYUN_ACCESS_TOKEN;
-
-  const features = cliFeatures ? parseList(cliFeatures) : undefined;
-
   // 增加日志来确认代码执行到了这里
   console.error('DEBUG: Initializing platform...');
 
   const platform = createSupabaseApiPlatform({
-    accessToken: accessToken,
+    accessToken: "accessToken",
     aliyunAccessToken: aliyunAccessToken,
     apiUrl,
   });
