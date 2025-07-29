@@ -16,5 +16,6 @@
   },
   "dependencies": {
     "@alicloud/gpdb20160503": "^2.7.1"
-  }
+  },
+  "version": "1.0.0"
 }
