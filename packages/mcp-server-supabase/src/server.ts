@@ -94,7 +94,7 @@ export function createSupabaseMcpServer(options: SupabaseMcpServerOptions) {
     contentApiUrl = 'https://supabase.com/docs/api/graphql',
   } = options;
 
-  const contentApiClientPromise = createContentApiClient(contentApiUrl);
+  // const contentApiClientPromise = createContentApiClient(contentApiUrl);
 
   const enabledFeatures = z
     .set(featureGroupSchema)
@@ -109,7 +109,7 @@ export function createSupabaseMcpServer(options: SupabaseMcpServerOptions) {
       await platform.init?.(info);
     },
     tools: async () => {
-      const contentApiClient = await contentApiClientPromise;
+      // const contentApiClient = await contentApiClientPromise;
       const tools: Record<string, Tool> = {};
 
       // Add feature-based tools
@@ -146,9 +146,9 @@ export function createSupabaseMcpServer(options: SupabaseMcpServerOptions) {
         Object.assign(tools, getDevelopmentTools({ platform, projectId }));
       }
 
-      if (enabledFeatures.has('docs')) {
-        Object.assign(tools, getDocsTools({ contentApiClient }));
-      }
+      // if (enabledFeatures.has('docs')) {
+      //   Object.assign(tools, getDocsTools({ contentApiClient }));
+      // }
 
       if (enabledFeatures.has('functions')) {
         Object.assign(tools, getEdgeFunctionTools({ platform, projectId }));
