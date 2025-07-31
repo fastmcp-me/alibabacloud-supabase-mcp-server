@@ -308,6 +308,18 @@ export type SupabasePlatform = {
     region_id?: string;
   }): Promise<DeleteAliyunSupabaseProjectResult>;
 
+  describeRegions(): Promise<any>;
+
+  describeRdsVpcs(options: {
+    region_id?: string;
+  }): Promise<any>;
+
+  describeRdsVSwitches(options: {
+    region_id?: string;
+    zone_id: string;
+    vpc_id: string;
+  }): Promise<any>;
+
   // Edge functions
   listEdgeFunctions(projectId: string): Promise<EdgeFunction[]>;
   getEdgeFunction(

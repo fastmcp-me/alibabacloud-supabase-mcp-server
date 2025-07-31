@@ -1,4 +1,4 @@
-import GpdbClient, { CreateSupabaseProjectRequest, DeleteSupabaseProjectRequest, GetSupabaseProjectApiKeysRequest, GetSupabaseProjectDashboardAccountRequest, GetSupabaseProjectRequest, ListSupabaseProjectsRequest, ModifySupabaseProjectSecurityIpsRequest, ResetSupabaseProjectPasswordRequest } from '@alicloud/gpdb20160503';
+import GpdbClient, { CreateSupabaseProjectRequest, DeleteSupabaseProjectRequest, DescribeRdsVpcsRequest, DescribeRdsVSwitchsRequest, DescribeRegionsRequest, GetSupabaseProjectApiKeysRequest, GetSupabaseProjectDashboardAccountRequest, GetSupabaseProjectRequest, ListSupabaseProjectsRequest, ModifySupabaseProjectSecurityIpsRequest, ResetSupabaseProjectPasswordRequest } from '@alicloud/gpdb20160503';
 import * as OpenApi from '@alicloud/openapi-client';
 import {
   getMultipartBoundary,
@@ -726,7 +726,6 @@ export function createSupabaseApiPlatform(
 
       // 2. 构造请求参数对象
       const request = new ListSupabaseProjectsRequest({
-        // SDK 会自动处理 undefined 的情况，所以可以直接赋值
         regionId: options.region_id,
         nextToken: options.next_token,
         maxResults: options.max_results,
@@ -735,10 +734,8 @@ export function createSupabaseApiPlatform(
       try {
         // 3. 调用 SDK 方法
         const response = await client.listSupabaseProjects(request);
-        
+
         // 4. 返回 API 响应的主体部分
-        // SDK 的返回类型可能与我们的自定义类型略有差异，但结构应该兼容
-        // 使用 as 进行类型断言
         return response.body as unknown as ListAliyunSupabaseProjectsResult;
       } catch (error: any) {
         // 增加更详细的错误日志
@@ -982,7 +979,67 @@ export function createSupabaseApiPlatform(
         console.error('Aliyun Error Data:', error.data);
         throw new Error(`Failed to delete Aliyun Supabase project: ${error.data?.Message || error.message}`);
       }
-    }
+    },
+
+    async describeRegions(): Promise<any> {
+      // 创建阿里云客户端
+      const client = createAliyunGpdbClient();
+      
+      // 构造请求参数对象
+      const request = new DescribeRegionsRequest({});
+
+      try {
+        // 调用 SDK 方法
+        const response = await client.describeRegions(request);
+        return response.body;
+      } catch (error: any) {
+        console.error('Failed to call Aliyun DescribeRegions API:', error.message);
+        console.error('Aliyun Error Data:', error.data);
+        throw new Error(`Failed to describe regions: ${error.data?.Message || error.message}`);
+      }
+    },
+
+    async describeRdsVpcs(options: {
+      region_id?: string;
+    }): Promise<any> {
+      const client = createAliyunGpdbClient(options.region_id || 'cn-hangzhou');
+      
+      const request = new DescribeRdsVpcsRequest({
+        regionId: options.region_id,
+      });
+
+      try {
+        const response = await client.describeRdsVpcs(request);
+        return response.body;
+      } catch (error: any) {
+        console.error('Failed to call Aliyun DescribeRdsVpcs API:', error.message);
+        console.error('Aliyun Error Data:', error.data);
+        throw new Error(`Failed to describe VPCs: ${error.data?.Message || error.message}`);
+      }
+    },
+
+    async describeRdsVSwitches(options: {
+      region_id?: string;
+      zone_id: string;
+      vpc_id: string;
+    }): Promise<any> {
+      const client = createAliyunGpdbClient(options.region_id || 'cn-hangzhou');
+      
+      const request = new DescribeRdsVSwitchsRequest({
+        regionId: options.region_id,
+        zoneId: options.zone_id,
+        vpcId: options.vpc_id,
+      });
+
+      try {
+        const response = await client.describeRdsVSwitchs(request);
+        return response.body;
+      } catch (error: any) {
+        console.error('Failed to call Aliyun DescribeRdsVSwitches API:', error.message);
+        console.error('Aliyun Error Data:', error.data);
+        throw new Error(`Failed to describe vSwitches: ${error.data?.Message || error.message}`);
+      }
+    },
 
   };
 

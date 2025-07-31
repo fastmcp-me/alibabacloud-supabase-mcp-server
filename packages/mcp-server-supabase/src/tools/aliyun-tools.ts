@@ -200,5 +200,65 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
       }
     }),
 
+    describe_regions: tool({
+      description: 'Describe available regions and zones for Aliyun Supabase projects.',
+      parameters: z.object({}),
+      execute: async () => {
+        try {
+          const result = await platform.describeRegions();
+          return {
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error occurred';
+          return {
+            content: [{ type: 'text', text: `Error: ${message}` }]
+          };
+        }
+      }
+    }),
+
+    describe_rds_vpcs: tool({
+      description: 'Describe available VPCs in Aliyun for Supabase project deployment',
+      parameters: z.object({
+        region_id: z.string().optional().describe('Region ID. You can call the DescribeRegions API to view available region IDs.'),
+      }),
+      execute: async (options) => {
+        try {
+          const result = await platform.describeRdsVpcs(options);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error occurred';
+          return {
+            content: [{ type: 'text', text: `Error: ${message}` }]
+          };
+        }
+      }
+    }),
+
+    describe_rds_vswitches: tool({
+      description: 'Describe available vSwitches in Aliyun for Supabase project deployment',
+      parameters: z.object({
+        region_id: z.string().optional().describe('Region ID. You can call the DescribeRegions API to view available region IDs.'),
+        zone_id: z.string().describe('Zone ID. Must be consistent with the zone where the Supabase instance will be deployed.'),
+        vpc_id: z.string().describe('VPC ID. The VPC where the vSwitches are located.'),
+      }),
+      execute: async (options) => {
+        try {
+          const result = await platform.describeRdsVSwitches(options);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error occurred';
+          return {
+            content: [{ type: 'text', text: `Error: ${message}` }]
+          };
+        }
+      }
+    }),
+
   };
 }
