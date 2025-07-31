@@ -260,5 +260,79 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
       }
     }),
 
+    execute_sql: tool({
+      description: 'Execute custom SQL query on Supabase project using provided URL and API key',
+      parameters: z.object({
+        url: z.string().describe('Dashboard URL for the Supabase project'),
+        api_key: z.string().describe('API key for authentication'),
+        sql: z.string().describe('SQL query to execute')
+      }),
+      execute: async ({ url, api_key, sql }) => {
+        try {
+          // 直接执行 HTTP 请求而不是返回 curl 命令
+          url = url+"/pg/query"
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'apikey': api_key,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ query: sql })
+          });
+
+          const result = await response.json();
+          
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }]
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error occurred';
+          return {
+            content: [{ type: 'text', text: `Error: ${message}` }]
+          };
+        }
+      }
+    }),
+
+    list_table: tool({
+      description: 'List all tables in the database.',
+      parameters: z.object({
+        url: z.string().describe('Dashboard URL for the Supabase project'),
+        api_key: z.string().describe('API key for authentication'),
+      }),
+      execute: async ({ url, api_key }) => {
+        try {
+          // 直接执行 HTTP 请求而不是返回 curl 命令
+          url = url+"/pg/query"
+          const sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'apikey': api_key,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ query: sql })
+          });
+
+          const result = await response.json();
+          
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }]
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error occurred';
+          return {
+            content: [{ type: 'text', text: `Error: ${message}` }]
+          };
+        }
+      }
+    }),
+
   };
 }
