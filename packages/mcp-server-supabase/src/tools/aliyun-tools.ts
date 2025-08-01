@@ -261,7 +261,7 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
     }),
 
     execute_sql: tool({
-      description: 'Execute custom SQL query on Supabase project using provided URL and API key',
+      description: 'Execute custom SQL query on Supabase project using provided URL (i.e., PublicConnectUrl from get_supabase_project) and API key (i.e., ServiceRoleKey from get_supabase_project).',
       parameters: z.object({
         url: z.string().describe('Dashboard URL for the Supabase project'),
         api_key: z.string().describe('API key for authentication'),
@@ -270,7 +270,7 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
       execute: async ({ url, api_key, sql }) => {
         try {
           // 直接执行 HTTP 请求而不是返回 curl 命令
-          url = url+"/pg/query"
+          url = "http://"+url+"/pg/query"
           const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -298,7 +298,7 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
     }),
 
     list_table: tool({
-      description: 'List all tables in the database.',
+      description: 'List all tables in the database using provided URL (i.e., PublicConnectUrl from get_supabase_project) and API key (i.e., ServiceRoleKey from get_supabase_projects.',
       parameters: z.object({
         url: z.string().describe('Dashboard URL for the Supabase project'),
         api_key: z.string().describe('API key for authentication'),
@@ -306,7 +306,7 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
       execute: async ({ url, api_key }) => {
         try {
           // 直接执行 HTTP 请求而不是返回 curl 命令
-          url = url+"/pg/query"
+          url = "http://"+url+"/pg/query"
           const sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
           const response = await fetch(url, {
             method: 'POST',
