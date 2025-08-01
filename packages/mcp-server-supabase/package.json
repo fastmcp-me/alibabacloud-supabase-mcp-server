@@ -1,6 +1,6 @@
 {
   "name": "@aliyun-supabase/mcp-server-supabase",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "MCP server for interacting with Supabase",
   "license": "Apache-2.0",
   "type": "module",
@@ -35,7 +35,6 @@
   },
   "dependencies": {
     "@alicloud/openapi-client": "^0.4.15",
-    "@aliyun-supabase/mcp-server-supabase": "^0.4.5",
     "@mjackson/multipart-parser": "^0.10.1",
     "@modelcontextprotocol/sdk": "^1.11.0",
     "@supabase/mcp-utils": "0.2.1",

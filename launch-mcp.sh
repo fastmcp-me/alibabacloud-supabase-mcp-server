@@ -13,5 +13,4 @@ echo "MCP Wrapper Script started. Logging to $LOG_FILE" >> "$LOG_FILE"
 # 标准输出(1)不做任何处理，这样Cursor才能接收到协议消息
 npx -y @aliyun-supabase/mcp-server-supabase@latest \
     --features=aliyun \
-    --read-only \
-    2 >> "$LOG_FILE"
+    --read-only 2>> "$LOG_FILE"
