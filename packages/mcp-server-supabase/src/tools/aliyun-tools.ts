@@ -1,6 +1,19 @@
 import type { SupabasePlatform } from '../platform/types.js';
 import { type Tool, tool } from '@supabase/mcp-utils';
 import { z } from 'zod';
+import { appendFileSync } from 'fs';
+import { join } from 'path';
+
+// 创建日志函数，将日志同时输出到控制台和文件
+function logToFile(message: string) {
+  const logMessage = `${new Date().toISOString()} - ${message}\n`;
+  console.log(message);
+  try {
+    appendFileSync(join(process.cwd(), 'supabase-mcp-debug.log'), logMessage);
+  } catch (error) {
+    console.error('Failed to write to log file:', error);
+  }
+}
 
 export type AliyunToolsOptions = {
   platform: SupabasePlatform;
@@ -77,7 +90,7 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
     // }),
 
     get_supabase_project_api_keys: tool({
-      description: 'Gets the Supabase project API keys including anon key and service role key.',
+      description: 'Gets the Supabase project API keys including anon key and serviceRoleKey.',
       parameters: z.object({
         project_id: z.string().describe('The Supabase instance ID.'),
         region_id: z.string().optional().describe('The region ID where the instance is located.'),
@@ -261,10 +274,10 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
     }),
 
     execute_sql: tool({
-      description: 'Executes custom SQL queries on a Supabase project database. Requires the project\'s PublicConnectUrl and service role key obtained from other tools.',
+      description: 'Executes custom SQL queries on a Supabase project database. Requires the project\'s PublicConnectUrl as url and serviceRoleKey as api_key obtained from other tools.',
       parameters: z.object({
         url: z.string().describe('PublicConnectUrl for the Supabase project'),
-        api_key: z.string().describe('service role key for authentication'),
+        api_key: z.string().describe('serviceRoleKey for authentication'),
         sql: z.string().describe('SQL query to execute')
       }),
       execute: async ({ url, api_key, sql }) => {
@@ -278,6 +291,11 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
             url = url.replace('https://', 'http://');
           }
           url = url + "/pg/query"
+
+          logToFile(`Debug - URL: ${url}`);
+          logToFile(`Debug - API Key: ${api_key}`);
+          logToFile(`Debug - SQL: ${sql}`);
+
           const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -305,10 +323,10 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
     }),
 
     list_table: tool({
-      description: 'Lists all tables in the public schema of a Supabase project database. Useful for exploring database structure and existing data models. Requires the project\'s PublicConnectUrl and service role key obtained from other tools.',
+      description: 'Lists all tables in the public schema of a Supabase project database. Useful for exploring database structure and existing data models. Requires the project\'s PublicConnectUrl as url and serviceRoleKey as api_key obtained from other tools.',
       parameters: z.object({
         url: z.string().describe('PublicConnectUrl for the Supabase project'),
-        api_key: z.string().describe('service role key for authentication'),
+        api_key: z.string().describe('serviceRoleKey for authentication'),
       }),
       execute: async ({ url, api_key }) => {
         try {
@@ -320,6 +338,10 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
           }
           url = url + "/pg/query"
           const sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+          
+          logToFile(`Debug list_table - URL: ${url}`);
+          logToFile(`Debug list_table - SQL Query: ${sql}`);
+          
           const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -331,6 +353,8 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
 
           const result = await response.json();
           
+          logToFile(`Debug list_table - Response: ${JSON.stringify(result)}`);
+          
           return {
             content: [{
               type: 'text',
@@ -339,6 +363,7 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
           };
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Unknown error occurred';
+          logToFile(`Debug list_table - Error: ${message}`);
           return {
             content: [{ type: 'text', text: `Error: ${message}` }]
           };
