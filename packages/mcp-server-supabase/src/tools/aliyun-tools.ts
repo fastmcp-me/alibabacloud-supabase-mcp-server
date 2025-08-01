@@ -9,9 +9,9 @@ export type AliyunToolsOptions = {
 export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<Record<string, Tool>> {
   return {
     list_aliyun_supabase_projects: tool({
-      description: 'Lists Supabase projects on Aliyun platform, default region is cn-hangzhou',
+      description: 'Lists all Supabase projects deployed on the Aliyun platform. Use this to retrieve a list of existing projects with their basic information. If no projects are found in the default region (cn-hangzhou), try other regions obtained from the describe_regions tool.',
       parameters: z.object({
-        region_id: z.string().optional().describe('Region ID, default is cn-hangzhou'),
+        region_id: z.string().optional().describe('Region ID (e.g., cn-hangzhou, cn-shanghai, cn-beijing, etc.)'),
         next_token: z.string().optional().describe('Next token for pagination'),
         max_results: z.number().optional().describe('Maximum number of results to return')
       }),
@@ -261,10 +261,10 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
     }),
 
     execute_sql: tool({
-      description: 'Execute custom SQL query on Supabase project using provided URL (i.e., PublicConnectUrl from Project from get_supabase_project or list_aliyun_supabase_projects) and API key (i.e., serviceRoleKey from get_supabase_project_api_keys).',
+      description: 'Executes custom SQL queries on a Supabase project database. Requires the project\'s PublicConnectUrl and service role key obtained from other tools.',
       parameters: z.object({
         url: z.string().describe('PublicConnectUrl for the Supabase project'),
-        api_key: z.string().describe('serviceRoleKey for authentication'),
+        api_key: z.string().describe('service role key for authentication'),
         sql: z.string().describe('SQL query to execute')
       }),
       execute: async ({ url, api_key, sql }) => {
@@ -305,10 +305,10 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
     }),
 
     list_table: tool({
-      description: 'List all tables in the database using provided URL (i.e., PublicConnectUrl from Project from get_supabase_project or list_aliyun_supabase_projects) and API key (i.e., serviceRoleKey from get_supabase_project_api_keys).',
+      description: 'Lists all tables in the public schema of a Supabase project database. Useful for exploring database structure and existing data models. Requires the project\'s PublicConnectUrl and service role key obtained from other tools.',
       parameters: z.object({
         url: z.string().describe('PublicConnectUrl for the Supabase project'),
-        api_key: z.string().describe('serviceRoleKey for authentication'),
+        api_key: z.string().describe('service role key for authentication'),
       }),
       execute: async ({ url, api_key }) => {
         try {
