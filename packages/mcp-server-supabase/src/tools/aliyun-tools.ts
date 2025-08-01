@@ -4,17 +4,6 @@ import { z } from 'zod';
 import { appendFileSync } from 'fs';
 import { join } from 'path';
 
-// 创建日志函数，将日志同时输出到控制台和文件
-function logToFile(message: string) {
-  const logMessage = `${new Date().toISOString()} - ${message}\n`;
-  console.log(message);
-  try {
-    appendFileSync(join(process.cwd(), 'supabase-mcp-debug.log'), logMessage);
-  } catch (error) {
-    console.error('Failed to write to log file:', error);
-  }
-}
-
 export type AliyunToolsOptions = {
   platform: SupabasePlatform;
 };
@@ -292,9 +281,9 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
           }
           url = url + "/pg/query"
 
-          logToFile(`Debug - URL: ${url}`);
-          logToFile(`Debug - API Key: ${api_key}`);
-          logToFile(`Debug - SQL: ${sql}`);
+          console.error(`Debug - URL: ${url}`);
+          console.error(`Debug - API Key: ${api_key}`);
+          console.error(`Debug - SQL: ${sql}`);
 
           const response = await fetch(url, {
             method: 'POST',
@@ -339,8 +328,8 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
           url = url + "/pg/query"
           const sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
           
-          logToFile(`Debug list_table - URL: ${url}`);
-          logToFile(`Debug list_table - SQL Query: ${sql}`);
+          console.error(`Debug list_table - URL: ${url}`);
+          console.error(`Debug list_table - SQL Query: ${sql}`);
           
           const response = await fetch(url, {
             method: 'POST',
@@ -353,7 +342,7 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
 
           const result = await response.json();
           
-          logToFile(`Debug list_table - Response: ${JSON.stringify(result)}`);
+          console.error(`Debug list_table - Response: ${JSON.stringify(result)}`);
           
           return {
             content: [{
@@ -363,7 +352,7 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
           };
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Unknown error occurred';
-          logToFile(`Debug list_table - Error: ${message}`);
+          console.error(`Debug list_table - Error: ${message}`);
           return {
             content: [{ type: 'text', text: `Error: ${message}` }]
           };
