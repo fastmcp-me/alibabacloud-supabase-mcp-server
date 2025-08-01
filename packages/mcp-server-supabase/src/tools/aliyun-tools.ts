@@ -9,9 +9,9 @@ export type AliyunToolsOptions = {
 export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<Record<string, Tool>> {
   return {
     list_aliyun_supabase_projects: tool({
-      description: 'Lists Supabase projects on Aliyun platform',
+      description: 'Lists Supabase projects on Aliyun platform, default region is cn-hangzhou',
       parameters: z.object({
-        region_id: z.string().optional().describe('Region ID'),
+        region_id: z.string().optional().describe('Region ID, default is cn-hangzhou'),
         next_token: z.string().optional().describe('Next token for pagination'),
         max_results: z.number().optional().describe('Maximum number of results to return')
       }),
@@ -54,27 +54,27 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
       }
     }),
 
-    get_supabase_project_dashboard_account: tool({
-      description: 'Gets the Supabase project dashboard account information.',
-      parameters: z.object({
-        project_id: z.string().describe('The Supabase instance ID.'),
-        region_id: z.string().optional().describe('Region ID'),
-      }),
-      execute: async (options) => {
-        try {
-          const result = await platform.getAliyunSupabaseProjectDashboardAccount(options);
+    // get_supabase_project_dashboard_account: tool({
+    //   description: 'Gets the Supabase project dashboard account information.',
+    //   parameters: z.object({
+    //     project_id: z.string().describe('The Supabase instance ID.'),
+    //     region_id: z.string().optional().describe('Region ID'),
+    //   }),
+    //   execute: async (options) => {
+    //     try {
+    //       const result = await platform.getAliyunSupabaseProjectDashboardAccount(options);
           
-          return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify(result, null, 2)
-            }]
-          };
-        } catch (error) {
-          throw new Error(`Failed to get dashboard account: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
-      },
-    }),
+    //       return {
+    //         content: [{
+    //           type: 'text',
+    //           text: JSON.stringify(result, null, 2)
+    //         }]
+    //       };
+    //     } catch (error) {
+    //       throw new Error(`Failed to get dashboard account: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    //     }
+    //   },
+    // }),
 
     get_supabase_project_api_keys: tool({
       description: 'Gets the Supabase project API keys including anon key and service role key.',
@@ -261,16 +261,23 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
     }),
 
     execute_sql: tool({
-      description: 'Execute custom SQL query on Supabase project using provided URL (i.e., PublicConnectUrl from get_supabase_project) and API key (i.e., ServiceRoleKey from get_supabase_project).',
+      description: 'Execute custom SQL query on Supabase project using provided URL (i.e., PublicConnectUrl from Project from get_supabase_project or list_aliyun_supabase_projects) and API key (i.e., serviceRoleKey from get_supabase_project_api_keys).',
       parameters: z.object({
-        url: z.string().describe('Dashboard URL for the Supabase project'),
-        api_key: z.string().describe('API key for authentication'),
+        url: z.string().describe('PublicConnectUrl for the Supabase project'),
+        api_key: z.string().describe('serviceRoleKey for authentication'),
         sql: z.string().describe('SQL query to execute')
       }),
       execute: async ({ url, api_key, sql }) => {
         try {
           // 直接执行 HTTP 请求而不是返回 curl 命令
-          url = "http://"+url+"/pg/query"
+          // 检查 URL 是否已经包含 http 或 https 前缀
+          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = "http://" + url;
+          }
+          else if (url.startsWith('https://')) {
+            url = url.replace('https://', 'http://');
+          }
+          url = url + "/pg/query"
           const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -298,15 +305,20 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
     }),
 
     list_table: tool({
-      description: 'List all tables in the database using provided URL (i.e., PublicConnectUrl from get_supabase_project) and API key (i.e., ServiceRoleKey from get_supabase_projects.',
+      description: 'List all tables in the database using provided URL (i.e., PublicConnectUrl from Project from get_supabase_project or list_aliyun_supabase_projects) and API key (i.e., serviceRoleKey from get_supabase_project_api_keys).',
       parameters: z.object({
-        url: z.string().describe('Dashboard URL for the Supabase project'),
-        api_key: z.string().describe('API key for authentication'),
+        url: z.string().describe('PublicConnectUrl for the Supabase project'),
+        api_key: z.string().describe('serviceRoleKey for authentication'),
       }),
       execute: async ({ url, api_key }) => {
         try {
-          // 直接执行 HTTP 请求而不是返回 curl 命令
-          url = "http://"+url+"/pg/query"
+          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = "http://" + url;
+          }
+          else if (url.startsWith('https://')) {
+            url = url.replace('https://', 'http://');
+          }
+          url = url + "/pg/query"
           const sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
           const response = await fetch(url, {
             method: 'POST',
