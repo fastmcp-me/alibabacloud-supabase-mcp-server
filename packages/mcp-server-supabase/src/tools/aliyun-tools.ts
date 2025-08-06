@@ -1,11 +1,22 @@
 import type { SupabasePlatform } from '../platform/types.js';
 import { type Tool, tool } from '@supabase/mcp-utils';
 import { z } from 'zod';
-import { appendFileSync } from 'fs';
-import { join } from 'path';
+import { exec } from 'child_process';
 
 export type AliyunToolsOptions = {
   platform: SupabasePlatform;
+};
+
+/**
+ * 安全地转义一个字符串，以便在 shell 命令中作为单个参数使用。
+ * @param {string} arg 要转义的参数。
+ * @returns {string} 转义后的参数，已用单引号包裹。
+ */
+const escapeShellArg = (arg) => {
+  // 1. 将字符串中的所有单引号 ' 替换为 '\''
+  //    这表示：结束当前的单引号字符串，插入一个转义的单引号，然后开始一个新的单引号字符串。
+  // 2. 用单引号将整个结果包裹起来。
+  return `'${arg.replace(/'/g, "'\\''")}'`;
 };
 
 export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<Record<string, Tool>> {
@@ -263,7 +274,7 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
     }),
 
     execute_sql: tool({
-      description: 'Executes custom SQL queries on a Supabase project database. Requires the project\'s PublicConnectUrl as url and serviceRoleKey as api_key obtained from other tools.',
+      description: 'Executes custom SQL queries on a Supabase project database by building and running a curl command. Requires PublicConnectUrl and serviceRoleKey.',
       parameters: z.object({
         url: z.string().describe('PublicConnectUrl for the Supabase project'),
         api_key: z.string().describe('serviceRoleKey for authentication'),
@@ -271,39 +282,68 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
       }),
       execute: async ({ url, api_key, sql }) => {
         try {
-          // 直接执行 HTTP 请求而不是返回 curl 命令
-          // 检查 URL 是否已经包含 http 或 https 前缀
-          if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            url = "http://" + url;
+          // 1. 准备和格式化参数
+          let requestUrl = url;
+          if (!requestUrl.startsWith('http://') && !requestUrl.startsWith('https://')) {
+            requestUrl = "http://" + requestUrl;
           }
-          else if (url.startsWith('https://')) {
-            url = url.replace('https://', 'http://');
-          }
-          url = url + "/pg/query"
+          requestUrl = requestUrl + "/pg/query";
+          
+          const jsonData = JSON.stringify({ query: sql });
 
-          console.error(`Debug - URL: ${url}`);
-          console.error(`Debug - API Key: ${api_key}`);
-          console.error(`Debug - SQL: ${sql}`);
+          // 2. 安全地构建 curl 命令
+          //    使用 escapeShellArg 对每个动态部分进行转义，防止命令注入
+          const command = [
+            'curl',
+            '-X POST',
+            escapeShellArg(requestUrl),
+            '-H', escapeShellArg(`apikey: ${api_key}`),
+            '-H', escapeShellArg('Content-Type: application/json'),
+            '-d', escapeShellArg(jsonData)
+          ].join(' ');
 
-          const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'apikey': api_key,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ query: sql })
+          console.error(`Debug - Executing command: ${command}`);
+
+          // 3. 执行命令并等待结果
+          const result = await new Promise((resolve, reject) => {
+            exec(command, (error, stdout, stderr) => {
+              if (error) {
+                // 如果命令执行失败（例如 curl 不存在，或返回非 0 退出码）
+                console.error(`Debug - exec error: ${error.message}`);
+                console.error(`Debug - stderr: ${stderr}`);
+                reject(new Error(`Command failed: ${stderr || error.message}`));
+                return;
+              }
+              if (stderr) {
+                // curl 可能会将进度信息等输出到 stderr，但我们仍然可以继续
+                console.warn(`Debug - stderr output: ${stderr}`);
+              }
+              
+              try {
+                // 尝试解析 stdout 输出的 JSON
+                const parsedOutput = JSON.parse(stdout);
+                resolve(parsedOutput);
+              } catch (parseError) {
+                // 如果 stdout 不是有效的 JSON
+                const parseErrorMessage = parseError instanceof Error ? parseError.message : String(parseError);
+                console.error(`Debug - JSON parse error: ${parseErrorMessage}`);
+                console.error(`Debug - stdout received: ${stdout}`);
+                reject(new Error(`Failed to parse curl output as JSON: ${stdout}`));
+              }
+            });
           });
 
-          const result = await response.json();
-          
+          // 4. 返回成功的结果
           return {
             content: [{
               type: 'text',
               text: JSON.stringify(result, null, 2)
             }]
           };
+
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Unknown error occurred';
+          console.error(`Debug - Error: ${message}`);
           return {
             content: [{ type: 'text', text: `Error: ${message}` }]
           };
@@ -319,40 +359,64 @@ export async function getAliyunTools({ platform }: AliyunToolsOptions): Promise<
       }),
       execute: async ({ url, api_key }) => {
         try {
-          if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            url = "http://" + url;
+          // 1. 准备和格式化参数
+          let requestUrl = url;
+          if (!requestUrl.startsWith('http://') && !requestUrl.startsWith('https://')) {
+            requestUrl = "http://" + requestUrl;
           }
-          else if (url.startsWith('https://')) {
-            url = url.replace('https://', 'http://');
-          }
-          url = url + "/pg/query"
-          const sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
+          requestUrl = requestUrl + "/pg/query";
           
-          console.error(`Debug list_table - URL: ${url}`);
-          console.error(`Debug list_table - SQL Query: ${sql}`);
-          
-          const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'apikey': api_key,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ query: sql })
+          const sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'";
+          const jsonData = JSON.stringify({ query: sql });
+
+          // 2. 安全地构建 curl 命令
+          const command = [
+            'curl',
+            '-X POST',
+            escapeShellArg(requestUrl),
+            '-H', escapeShellArg(`apikey: ${api_key}`),
+            '-H', escapeShellArg('Content-Type: application/json'),
+            '-d', escapeShellArg(jsonData)
+          ].join(' ');
+
+          console.error(`Debug list_table - Executing command: ${command}`);
+
+          // 3. 执行命令并等待结果
+          const result = await new Promise((resolve, reject) => {
+            exec(command, (error, stdout, stderr) => {
+              if (error) {
+                console.error(`Debug - exec error: ${error.message}`);
+                console.error(`Debug - stderr: ${stderr}`);
+                reject(new Error(`Command failed: ${stderr || error.message}`));
+                return;
+              }
+              if (stderr) {
+                console.warn(`Debug - stderr output: ${stderr}`);
+              }
+              
+              try {
+                const parsedOutput = JSON.parse(stdout);
+                resolve(parsedOutput);
+              } catch (parseError) {
+                const parseErrorMessage = parseError instanceof Error ? parseError.message : String(parseError);
+                console.error(`Debug - JSON parse error: ${parseErrorMessage}`);
+                console.error(`Debug - stdout received: ${stdout}`);
+                reject(new Error(`Failed to parse curl output as JSON: ${stdout}`));
+              }
+            });
           });
 
-          const result = await response.json();
-          
-          console.error(`Debug list_table - Response: ${JSON.stringify(result)}`);
-          
+          // 4. 返回成功的结果
           return {
             content: [{
               type: 'text',
               text: JSON.stringify(result, null, 2)
             }]
           };
+
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Unknown error occurred';
-          console.error(`Debug list_table - Error: ${message}`);
+          console.error(`Debug - Error: ${message}`);
           return {
             content: [{ type: 'text', text: `Error: ${message}` }]
           };
