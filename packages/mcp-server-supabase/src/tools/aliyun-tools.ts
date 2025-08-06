@@ -12,7 +12,7 @@ export type AliyunToolsOptions = {
  * @param {string} arg 要转义的参数。
  * @returns {string} 转义后的参数，已用单引号包裹。
  */
-const escapeShellArg = (arg) => {
+const escapeShellArg = (arg: string): string => {
   // 1. 将字符串中的所有单引号 ' 替换为 '\''
   //    这表示：结束当前的单引号字符串，插入一个转义的单引号，然后开始一个新的单引号字符串。
   // 2. 用单引号将整个结果包裹起来。
