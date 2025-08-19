@@ -7,7 +7,7 @@ Learn more about [Alibaba Cloud Supabase MCP](https://www.alibabacloud.com/help/
 
 # Supabase MCP Server
 
-> Connect your Supabase projects to Cursor, Claude, Windsurf, and other AI assistants.
+> Connect your Supabase projects to Cursor, Claude, Windsurf, Lingma, Qoder, and other AI assistants.
 
 ![supabase-mcp-demo](https://github.com/user-attachments/assets/3fce101a-b7d4-482f-9182-0be70ed1ad56)
 
@@ -53,9 +53,7 @@ Next, configure your MCP client (such as Cursor) to use this server. Most MCP cl
 }
 ```
 
-Replace `<ALIYUN_ACCESS_TOKEN>` with the token you created in step 1. 
-
-
+Replace `<ALIYUN_ACCESS_TOKEN>` with the token you created in step 1.
 
 ## Tools
 
@@ -97,7 +95,6 @@ An important note: most MCP clients like Cursor ask you to manually accept each 
 
 To lower this risk further, Supabase MCP wraps SQL results with additional instructions to discourage LLMs from following instructions or commands that might be present in the data. This is not foolproof though, so you should always review the output before proceeding with further actions.
 
-
 ## Other MCP servers
 
 ### `@supabase/mcp-server-postgrest`
@@ -125,4 +122,3 @@ npm install --ignore-scripts
 ## License
 
 This project is licensed under Apache 2.0. See the [LICENSE](./LICENSE) file for details.
-
