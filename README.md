@@ -1,6 +1,6 @@
 # Aliyun Supabase
 
-Learn more about our product  [Supabase on Alibaba Cloud (AnalyticDB for PostgreSQL](https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/user-guide/supabase/).
+Learn more about our product  [Supabase on Alibaba Cloud (AnalyticDB for PostgreSQL)](https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/user-guide/supabase/).
 Deploy Supabase **for free** on Alibaba Cloud today.
 
 Learn more about [Alibaba Cloud Supabase MCP](https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/user-guide/supabase-mcp-user-guide?spm=a2c63.p38356.help-menu-92664.d_2_0_0.632d1bccKdiUyn).
@@ -97,16 +97,6 @@ An important note: most MCP clients like Cursor ask you to manually accept each 
 
 To lower this risk further, Supabase MCP wraps SQL results with additional instructions to discourage LLMs from following instructions or commands that might be present in the data. This is not foolproof though, so you should always review the output before proceeding with further actions.
 
-### Recommendations
-
-We recommend the following best practices to mitigate security risks when using the Supabase MCP server:
-
-- **Don't connect to production**: Use the MCP server with a development project, not production. LLMs are great at helping design and test applications, so leverage them in a safe environment without exposing real data. Be sure that your development environment contains non-production data (or obfuscated data).
-- **Don't give to your customers**: The MCP server operates under the context of your developer permissions, so it should not be given to your customers or end users. Instead, use it internally as a developer tool to help you build and test your applications.
-- **Read-only mode**: If you must connect to real data, set the server to [read-only](#read-only-mode) mode, which executes all queries as a read-only Postgres user.
-- **Project scoping**: Scope your MCP server to a [specific project](#project-scoped-mode), limiting access to only that project's resources. This prevents LLMs from accessing data from other projects in your Supabase account.
-- **Branching**: Use Supabase's [branching feature](https://supabase.com/docs/guides/deployment/branching) to create a development branch for your database. This allows you to test changes in a safe environment before merging them to production.
-- **Feature groups**: The server allows you to enable or disable specific [tool groups](#feature-groups), so you can control which tools are available to the LLM. This helps reduce the attack surface and limits the actions that LLMs can perform to only those that you need.
 
 ## Other MCP servers
 
