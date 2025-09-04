@@ -1,3 +1,8 @@
+[![Add to Cursor](https://fastmcp.me/badges/cursor_dark.svg)](https://fastmcp.me/MCP/Details/826/alibaba-cloud-supabase)
+[![Add to VS Code](https://fastmcp.me/badges/vscode_dark.svg)](https://fastmcp.me/MCP/Details/826/alibaba-cloud-supabase)
+[![Add to Claude](https://fastmcp.me/badges/claude_dark.svg)](https://fastmcp.me/MCP/Details/826/alibaba-cloud-supabase)
+[![Add to ChatGPT](https://fastmcp.me/badges/chatgpt_dark.svg)](https://fastmcp.me/MCP/Details/826/alibaba-cloud-supabase)
+
 # Aliyun Supabase
 
 Learn more about our product  [Supabase on Alibaba Cloud (AnalyticDB for PostgreSQL)](https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/user-guide/supabase/).
